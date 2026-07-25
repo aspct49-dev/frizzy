@@ -72,9 +72,7 @@ export function SiteFooter() {
       <section className="socialBand" aria-labelledby="social-band-title">
         <div className="socialBandInner">
           <div className="centerHeading" data-reveal="heading">
-            <h2 id="social-band-title">
-              Follow the <span className="headingAccent">juicy socials</span>
-            </h2>
+            <h2 id="social-band-title">Keep Up With Frizzy</h2>
           </div>
 
           <div className="socialCards">
@@ -96,10 +94,7 @@ export function SiteFooter() {
             ))}
           </div>
 
-          <p className="socialTagline">
-            Lifestyle, gambling, gaming and more
-            <strong>Enjoy!</strong>
-          </p>
+          
         </div>
       </section>
       </div>

@@ -15,7 +15,6 @@
 
 # next.js
 /.next/
-/.vinext/
 /out/
 
 # misc
@@ -36,14 +35,6 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
-/dist/
-/.wrangler/
-/outputs/
-/work/
-/data/
-
-# wrangler local secrets
-.dev.vars
 
 # python cache (ui-ux-pro-max skill scripts)
 __pycache__/

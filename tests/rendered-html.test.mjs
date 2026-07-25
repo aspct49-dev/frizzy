@@ -1,30 +1,46 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import { after, before, test } from "node:test";
 
-async function render(path = "/") {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${path}`);
-  const { default: worker } = await import(workerUrl.href);
+const PORT = 3411;
+const BASE_URL = `http://localhost:${PORT}`;
 
-  return worker.fetch(
-    new Request(`http://localhost${path}`, {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
+let server;
+
+async function waitForServer(timeoutMs = 30_000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const response = await fetch(BASE_URL);
+      if (response.ok || response.status < 500) return;
+    } catch {
+      // not ready yet
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Server did not become ready on ${BASE_URL} within ${timeoutMs}ms`);
 }
 
+before(async () => {
+  server = spawn("node", ["node_modules/next/dist/bin/next", "start", "-p", String(PORT)], {
+    cwd: new URL("..", import.meta.url),
+    stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, NODE_ENV: "production" },
+  });
+  server.stdout?.on("data", () => {});
+  server.stderr?.on("data", () => {});
+  await waitForServer();
+});
+
+after(() => {
+  server?.kill();
+});
+
 async function htmlFor(path) {
-  const response = await render(path);
+  const response = await fetch(`${BASE_URL}${path}`, {
+    headers: { accept: "text/html" },
+  });
   assert.equal(response.status, 200, `${path} should render successfully`);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   return response.text();
@@ -75,7 +91,7 @@ test("the midnight-juice theme and social footer are present", async () => {
   assert.match(styles, /--background:\s*#102135/);
   assert.match(styles, /--font-display:\s*"Baloo 2"/);
   assert.match(styles, /fonts\.googleapis\.com/);
-  assert.match(footer, /juicy socials/);
+  assert.match(footer, /Keep Up With Frizzy/);
   assert.match(footer, /SocialLinks footer/);
   assert.ok(waveFront.byteLength > 10_000);
   assert.ok(waveBack.byteLength > 10_000);

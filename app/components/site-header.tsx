@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { DISCORD_URL } from "../data";
 
 const navigation = [
   { href: "/", label: "Home" },
@@ -39,7 +40,7 @@ export function SiteHeader() {
         <div className="navEnd">
           <a
             className="headerAction"
-            href="https://stake.com/?c=FRIZZ"
+            href={DISCORD_URL}
             target="_blank"
             rel="noreferrer"
           >

@@ -203,7 +203,7 @@ export default async function Home() {
                         <span className="avatarRing">
                           <img src="/juicebox-face.png" alt="" />
                         </span>
-                        <img className="rankBadge" src={`/medal-${place}.png?v=2`} alt={`Rank ${place}`} />
+                        <img className="rankBadge" src={`/medal-${place}.png?v=3`} alt={`Rank ${place}`} />
                       </div>
                       <h2>{maskedName(player.name)}</h2>
                       <span className="podiumLabel">Wagered</span>

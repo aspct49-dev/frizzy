@@ -78,7 +78,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
                         <span className="avatarRing">
                           <img src="/juicebox-face.png" alt="" />
                         </span>
-                        <img className="rankBadge" src={`/medal-${place}.png?v=2`} alt={placeLabel[place - 1]} />
+                        <img className="rankBadge" src={`/medal-${place}.png?v=3`} alt={placeLabel[place - 1]} />
                       </div>
                       <h2>{maskedName(player.name)}</h2>
                       <span className="podiumLabel">Wagered</span>
@@ -114,7 +114,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
           {rankedPlayers.map((player, index) => (
             <div className="tableRow" role="row" key={player.name} data-reveal={index < 8 ? "row" : undefined}>
               {index < 3 ? (
-                <img className="rankMedal" src={`/medal-${index + 1}.png?v=2`} alt={`Rank ${index + 1}`} />
+                <img className="rankMedal" src={`/medal-${index + 1}.png?v=3`} alt={`Rank ${index + 1}`} />
               ) : (
                 <span className="rankChip">{index + 1}</span>
               )}

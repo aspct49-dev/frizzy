@@ -643,18 +643,36 @@ a {
 /* ------------------------------------------------------------------ */
 
 .promoBanner {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 0.78fr) minmax(440px, 1fr);
   gap: 44px;
   align-items: center;
   margin-block: 72px 96px;
   padding: 48px 50px;
+  overflow: hidden;
   border: 1px solid rgba(34, 216, 230, 0.28);
   border-radius: 22px;
   background:
     radial-gradient(ellipse 68% 95% at 100% 50%, rgba(34, 216, 230, 0.09), transparent 62%),
     linear-gradient(120deg, rgba(34, 216, 230, 0.08), transparent 55%),
     rgba(16, 33, 53, 0.68);
+}
+
+/* Underwater rays backdrop, dimmed and clipped to the card's rounded corners */
+.promoBanner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("/hero-backdrop.webp") center 30% / cover no-repeat;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.promoBanner > * {
+  position: relative;
+  z-index: 1;
 }
 
 .promoCopy h2 {

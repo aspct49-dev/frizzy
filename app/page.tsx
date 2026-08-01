@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DISCORD_URL, maskedName, money, STAKE_US_URL } from "./data";
+import { boards, DISCORD_URL, maskedName, money, STAKE_US_URL } from "./data";
+import { DualClaimButton } from "./components/dual-claim-button";
 import { VideosSection } from "./components/videos-section";
 import { getBoardsData } from "./lib/leaderboards";
 
@@ -159,9 +160,13 @@ export default async function Home() {
                 <li>Requires $1,000+ wagered within 3 days of sign up</li>
               </ul>
             </div>
-            <a className="perkAction bonusCta" href={DISCORD_URL} target="_blank" rel="noreferrer">
+            <DualClaimButton
+              className="perkAction bonusCta"
+              primaryUrl={boards.stake.url}
+              secondaryUrl={DISCORD_URL}
+            >
               Claim $50 Bonus ↗
-            </a>
+            </DualClaimButton>
             <p className="bonusNote">
               Create a{" "}
               <a href={DISCORD_URL} target="_blank" rel="noreferrer">

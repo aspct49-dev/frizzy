@@ -10,12 +10,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Frizzybets | Stake Leaderboard and Bonuses",
   description:
-    "Join Frizzybets' $10,000 monthly Stake leaderboard with code FRIZZ, claim exclusive Stake and Stake.us sign-up bonuses, and watch Frizzybets live.",
+    "Join Frizzybets' $10,000 monthly Stake leaderboard with code frizz, claim exclusive Stake and Stake.us sign-up bonuses, and watch Frizzybets live.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Frizzybets | Stake Leaderboard and Bonuses",
     description:
-      "Compete in Frizzybets' $10,000 monthly Stake leaderboard under code FRIZZ and win your share of the prize pool.",
+      "Compete in Frizzybets' $10,000 monthly Stake leaderboard under code frizz and win your share of the prize pool.",
     url: "/",
     images: ["/og.png"],
   },
@@ -112,7 +112,7 @@ export default async function Home() {
       <section className="homeSection" aria-label="Frizzybets exclusive bonuses">
         <div className="centerHeading" data-reveal="heading">
           <h2>BONUSES</h2>
-          <p className="underCode">Exclusive perks under code FRIZZ</p>
+          <p className="underCode">Exclusive perks under code frizz</p>
         </div>
 
         <div className="bonusGrid">

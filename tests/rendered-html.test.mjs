@@ -56,9 +56,9 @@ test("home is a focused Frizzybets hub", async () => {
   assert.match(html, /25SC/);
   assert.match(html, /3\.5% rakeback/);
   assert.match(html, /YouTube/);
-  assert.match(html, /code FRIZZ/);
-  assert.match(html, /stake\.com\/\?c=FRIZZ/i);
-  assert.match(html, /stake\.us\/\?c=FRIZZ/i);
+  assert.match(html, /code frizz/);
+  assert.match(html, /stake\.com\/\?c=frizz/i);
+  assert.match(html, /stake\.us\/\?c=frizz/i);
   assert.match(html, /href="\/leaderboard"/i);
   assert.match(html, /href="\/#videos"/i);
   assert.match(html, /kick\.com\/frizzybets/i);

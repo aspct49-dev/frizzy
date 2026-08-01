@@ -19,15 +19,15 @@ export const boards: Record<BoardKey, BoardConfig> = {
     name: "Stake",
     logo: "/stake-logo-white.png",
     logoAlt: "Stake",
-    code: "FRIZZ",
-    url: "https://stake.com/?c=FRIZZ",
+    code: "frizz",
+    url: "https://stake.com/?c=frizz",
     pool: "$10,000",
     paidPlaces: 10,
     period: "month",
   },
 };
 
-export const STAKE_US_URL = "https://stake.us/?c=FRIZZ";
+export const STAKE_US_URL = "https://stake.us/?c=frizz";
 
 export const DISCORD_URL = "https://discord.com/invite/kcHCKuJVjG";
 

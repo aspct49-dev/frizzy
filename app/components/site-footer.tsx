@@ -121,8 +121,8 @@ export function SiteFooter() {
 
           <div className="footerCol">
             <span>Partners</span>
-            <a href="https://stake.com/?c=FRIZZ" target="_blank" rel="noreferrer">Stake - code FRIZZ</a>
-            <a href="https://stake.us/?c=FRIZZ" target="_blank" rel="noreferrer">Stake.us - code FRIZZ</a>
+            <a href="https://stake.com/?c=frizz" target="_blank" rel="noreferrer">Stake - code frizz</a>
+            <a href="https://stake.us/?c=frizz" target="_blank" rel="noreferrer">Stake.us - code frizz</a>
           </div>
 
           <div className="footerCol footerSocialCol">
@@ -143,7 +143,7 @@ export function SiteFooter() {
 
         <p className="footerDisclaimer">
           Frizzybets is an independent affiliate of Stake and Stake.us and is not owned or operated
-          by them. We may earn a commission when you sign up or play using code FRIZZ. Nothing
+          by them. We may earn a commission when you sign up or play using code frizz. Nothing
           here is a guarantee of winnings; gambling involves real financial risk.
         </p>
 

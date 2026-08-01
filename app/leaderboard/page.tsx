@@ -7,12 +7,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "Live standings for Frizzybets' $10,000 monthly Stake leaderboard under code FRIZZ. Updated every 60 seconds.",
+    "Live standings for Frizzybets' $10,000 monthly Stake leaderboard under code frizz. Updated every 60 seconds.",
   alternates: { canonical: "/leaderboard" },
   openGraph: {
     title: "Frizzybets $10,000 Stake Leaderboard",
     description:
-      "Live standings for Frizzybets' $10,000 monthly Stake wager race under code FRIZZ.",
+      "Live standings for Frizzybets' $10,000 monthly Stake wager race under code frizz.",
     url: "/leaderboard",
     images: ["/og.png"],
   },

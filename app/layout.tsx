@@ -8,7 +8,7 @@ import "./globals.css";
 
 const title = "Frizzybets | Stake Leaderboard and Bonuses";
 const description =
-  "Join Frizzybets' $10,000 monthly Stake leaderboard under code FRIZZ, claim exclusive Stake and Stake.us bonuses, and watch Frizzybets live.";
+  "Join Frizzybets' $10,000 monthly Stake leaderboard under code frizz, claim exclusive Stake and Stake.us bonuses, and watch Frizzybets live.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const origin = requestOrigin();
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "Frizzybets",
       "Frizzybets leaderboard",
       "Stake leaderboard",
-      "code FRIZZ",
+      "code frizz",
       "Stake.us bonus",
       "Stake bonus",
       "wager leaderboard",

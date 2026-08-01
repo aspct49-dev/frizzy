@@ -65,7 +65,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
             {[topThree[1], topThree[0], topThree[2]].map((player, index) => {
               const place = index === 0 ? 2 : index === 1 ? 1 : 3;
               return (
-                <div className={`podiumSlot place${place}`} key={player.name}>
+                <div className={`podiumSlot place${place}`} key={`${player.name}-${place}`}>
                   <div className="podiumCard">
                     <img
                       className="frameArt"
@@ -112,7 +112,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
             <span>Rank</span><span>User</span><span>Wagered</span><span>Reward</span>
           </div>
           {rankedPlayers.map((player, index) => (
-            <div className="tableRow" role="row" key={player.name} data-reveal={index < 8 ? "row" : undefined}>
+            <div className="tableRow" role="row" key={`${player.name}-${index}`} data-reveal={index < 8 ? "row" : undefined}>
               {index < 3 ? (
                 <img className="rankMedal" src={`/medal-${index + 1}.png?v=3`} alt={`Rank ${index + 1}`} />
               ) : (

@@ -1,4 +1,4 @@
-import type { BoardKey } from "../data";
+import { PLACEHOLDER_NAME, type BoardKey } from "../data";
 
 export type Standing = {
   name: string;
@@ -15,20 +15,16 @@ const STAKE_PRIZES = [
 
 const CACHE_TTL_MS = 60_000;
 
-// Placeholder standings shown until a real data source is configured via
-// STAKE_LEADERBOARD_CSV_URL or STAKE_API_URL in .dev.vars. Remove once live.
-const DUMMY_STANDINGS: Array<{ name: string; wagered: number }> = [
-  { name: "JuicyWhale", wagered: 412384.22 },
-  { name: "SpinDoctor", wagered: 298541.1 },
-  { name: "MaxBetMarcus", wagered: 244098.75 },
-  { name: "SlotGoblin", wagered: 187420.0 },
-  { name: "CartonKing", wagered: 154206.9 },
-  { name: "BubbleBandit", wagered: 121889.35 },
-  { name: "StrawSniper", wagered: 98454.6 },
-  { name: "BlueRush", wagered: 76210.42 },
-  { name: "DripFeed", wagered: 54008.18 },
-  { name: "LuckyLoaf", wagered: 39754.99 },
-];
+// Shown whenever there are no real wagers yet (no source configured, or the
+// configured source returned nothing) — an open invitation rather than a
+// blank state. Prizes stay real; only the name and wagered amount are filler.
+function placeholderStandings(): Standing[] {
+  return STAKE_PRIZES.map((prize) => ({
+    name: PLACEHOLDER_NAME,
+    wagered: 0,
+    prize,
+  }));
+}
 
 type CacheEntry = { at: number; data: Standing[] };
 const cache = new Map<string, CacheEntry>();
@@ -129,11 +125,11 @@ async function fetchStakeStandings(): Promise<Standing[]> {
     );
   }
 
-  return rank(DUMMY_STANDINGS);
+  return [];
 }
 
 export async function getBoardsData(): Promise<BoardsData> {
   const { start } = currentMonthRange();
   const stake = await cached(`stake:${start}`, fetchStakeStandings);
-  return { stake };
+  return { stake: stake.length > 0 ? stake : placeholderStandings() };
 }

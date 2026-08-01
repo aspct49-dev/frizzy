@@ -31,11 +31,15 @@ export const STAKE_US_URL = "https://stake.us/?c=FRIZZ";
 
 export const DISCORD_URL = "https://discord.com/invite/kcHCKuJVjG";
 
+export const PLACEHOLDER_NAME = "This could be you";
+
 export function maskedName(name: string) {
+  if (name === PLACEHOLDER_NAME) return name;
   return `${name.charAt(0).toUpperCase()}${"*".repeat(Math.max(name.length - 1, 5))}`;
 }
 
 export function badgeFor(name: string) {
+  if (name === PLACEHOLDER_NAME) return "??";
   return name.slice(0, 2).toUpperCase();
 }
 

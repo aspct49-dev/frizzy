@@ -190,7 +190,7 @@ export default async function Home() {
             {ribbonOrder.map((player, index) => {
               const place = ribbonPlaces[index];
               return (
-                <div className={`podiumSlot place${place}`} key={player.name}>
+                <div className={`podiumSlot place${place}`} key={`${player.name}-${place}`}>
                   <div className="podiumCard">
                     <img
                       className="frameArt"

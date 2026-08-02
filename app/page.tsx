@@ -166,8 +166,8 @@ export default async function Home() {
               Claim 300% Bonus ↗
             </a>
             <p className="bonusNote">
-              Sign up with code <strong>frizz</strong> (or frizzybets), deposit $100–$500, then reach
-              out to live support to claim
+              Sign up with code <strong>frizz</strong>, deposit $100–$500, then reach out to live
+              support to claim
             </p>
           </article>
         </div>

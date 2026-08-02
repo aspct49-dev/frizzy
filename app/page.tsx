@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { boards, DISCORD_URL, maskedName, money, STAKE_US_URL } from "./data";
-import { DualClaimButton } from "./components/dual-claim-button";
+import { boards, maskedName, money, STAKE_US_URL } from "./data";
 import { VideosSection } from "./components/videos-section";
 import { getBoardsData } from "./lib/leaderboards";
 
@@ -126,19 +125,21 @@ export default async function Home() {
               <span className="bonusBoxLabel">Exclusive Bonus</span>
               <div className="bonusAmountRow">
                 <span className="bonusAmount">25SC</span>
-                <span className="bonusAmountSuffix">Free</span>
+                <span className="bonusAmountSuffix">+ 250K GC</span>
               </div>
               <ul className="bonusFeatures">
-                <li>1SC Daily</li>
+                <li>25 Stake Cash + 250,000 Gold Coins</li>
                 <li>3.5% rakeback</li>
-                <li>Leaderboard Access</li>
                 <li>No deposit required</li>
+                <li>Delivered by email after verification</li>
               </ul>
             </div>
             <a className="perkAction bonusCta" href={STAKE_US_URL} target="_blank" rel="noreferrer">
-              Claim 25SC Free Now ↗
+              Claim Stake.us Bonus ↗
             </a>
-            <p className="bonusNote">1SC can be redeemed for the equivalent of $1 USD</p>
+            <p className="bonusNote">
+              New accounts receive $25 Stake Cash by email within 3 days of verifying
+            </p>
           </article>
 
           <article className="bonusCard" data-reveal="card">
@@ -150,29 +151,22 @@ export default async function Home() {
             <div className="bonusBox">
               <span className="bonusBoxLabel">Exclusive Bonus</span>
               <div className="bonusAmountRow">
-                <span className="bonusAmount">$50</span>
-                <span className="bonusAmountSuffix">Bonus</span>
+                <span className="bonusAmount">300%</span>
+                <span className="bonusAmountSuffix">Deposit Bonus</span>
               </div>
               <ul className="bonusFeatures">
+                <li>300% deposit bonus</li>
                 <li>3.5% rakeback</li>
                 <li>Leaderboard Access</li>
-                <li>Requires $50+ deposit</li>
-                <li>Requires $1,000+ wagered within 3 days of sign up</li>
+                <li>50x wagering (deposit + bonus)</li>
               </ul>
             </div>
-            <DualClaimButton
-              className="perkAction bonusCta"
-              primaryUrl={boards.stake.url}
-              secondaryUrl={DISCORD_URL}
-            >
-              Claim $50 Bonus ↗
-            </DualClaimButton>
+            <a className="perkAction bonusCta" href={boards.stake.url} target="_blank" rel="noreferrer">
+              Claim 300% Bonus ↗
+            </a>
             <p className="bonusNote">
-              Create a{" "}
-              <a href={DISCORD_URL} target="_blank" rel="noreferrer">
-                Discord ticket
-              </a>{" "}
-              to claim the sign up bonus
+              Sign up with code <strong>frizz</strong> (or frizzybets), deposit $100–$500, then reach
+              out to live support to claim
             </p>
           </article>
         </div>

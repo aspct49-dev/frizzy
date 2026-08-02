@@ -130,6 +130,7 @@ export default async function Home() {
               <ul className="bonusFeatures">
                 <li>25 Stake Cash + 250,000 Gold Coins</li>
                 <li>3.5% rakeback</li>
+                <li>Leaderboard Access</li>
                 <li>No deposit required</li>
                 <li>Delivered by email after verification</li>
               </ul>

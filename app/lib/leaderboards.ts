@@ -15,15 +15,29 @@ const STAKE_PRIZES = [
 
 const CACHE_TTL_MS = 60_000;
 
-// Shown whenever there are no real wagers yet (no source configured, or the
-// configured source returned nothing) — an open invitation rather than a
-// blank state. Prizes stay real; only the name and wagered amount are filler.
-function placeholderStandings(): Standing[] {
-  return STAKE_PRIZES.map((prize) => ({
+// Manually entered standings — a stopgap until STAKE_LEADERBOARD_CSV_URL is
+// actually reachable (the sheet is still access-restricted as of writing).
+// Names are pre-masked (3 stars + the last few real characters) since these
+// are real usernames; remove this block once the CSV source goes live.
+const MANUAL_STANDINGS: Array<{ name: string; wagered: number }> = [
+  { name: "***ls7", wagered: 6839.04 },
+  { name: "***0oo", wagered: 2344.71 },
+  { name: "***163", wagered: 888.2 },
+  { name: "***ass", wagered: 726.17 },
+  { name: "***it0", wagered: 93.3 },
+];
+
+// Tops up a partial standings list to the full paid-places count with an
+// open invitation rather than a blank state — prizes stay real, only the
+// name and wagered amount are filler.
+function fillWithPlaceholders(standings: Standing[]): Standing[] {
+  if (standings.length >= STAKE_PRIZES.length) return standings;
+  const filler = STAKE_PRIZES.slice(standings.length).map((prize) => ({
     name: PLACEHOLDER_NAME,
     wagered: 0,
     prize,
   }));
+  return [...standings, ...filler];
 }
 
 type CacheEntry = { at: number; data: Standing[] };
@@ -131,5 +145,6 @@ async function fetchStakeStandings(): Promise<Standing[]> {
 export async function getBoardsData(): Promise<BoardsData> {
   const { start } = currentMonthRange();
   const stake = await cached(`stake:${start}`, fetchStakeStandings);
-  return { stake: stake.length > 0 ? stake : placeholderStandings() };
+  const base = stake.length > 0 ? stake : rank(MANUAL_STANDINGS);
+  return { stake: fillWithPlaceholders(base) };
 }

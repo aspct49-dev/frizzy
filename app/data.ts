@@ -34,12 +34,15 @@ export const DISCORD_URL = "https://discord.com/invite/kcHCKuJVjG";
 export const PLACEHOLDER_NAME = "This could be you";
 
 export function maskedName(name: string) {
-  if (name === PLACEHOLDER_NAME) return name;
+  // Already masked (placeholder, or a manually entered name pre-masked with
+  // leading stars) — show as-is instead of masking it a second time.
+  if (name === PLACEHOLDER_NAME || name.startsWith("*")) return name;
   return `${name.charAt(0).toUpperCase()}${"*".repeat(Math.max(name.length - 1, 5))}`;
 }
 
 export function badgeFor(name: string) {
   if (name === PLACEHOLDER_NAME) return "??";
+  if (name.startsWith("*")) return name.slice(-2).toUpperCase();
   return name.slice(0, 2).toUpperCase();
 }
 

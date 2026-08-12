@@ -20,11 +20,14 @@ const CACHE_TTL_MS = 60_000;
 // Names are pre-masked (3 stars + the last few real characters) since these
 // are real usernames; remove this block once the CSV source goes live.
 const MANUAL_STANDINGS: Array<{ name: string; wagered: number }> = [
-  { name: "***ls7", wagered: 11651.45 },
-  { name: "***0oo", wagered: 9017.43 },
-  { name: "***163", wagered: 4208.1 },
-  { name: "***ass", wagered: 2520.86 },
+  { name: "***ls7", wagered: 11471.63 },
+  { name: "***0oo", wagered: 10691.53 },
+  { name: "***163", wagered: 8932.61 },
+  { name: "***ass", wagered: 2681.98 },
+  { name: "***nhd", wagered: 415.18 },
   { name: "***it0", wagered: 93.3 },
+  { name: "***izz", wagered: 79.53 },
+  { name: "***088", wagered: 35.48 },
 ];
 
 // Tops up a partial standings list to the full paid-places count with an

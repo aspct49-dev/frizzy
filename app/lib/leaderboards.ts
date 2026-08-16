@@ -20,12 +20,12 @@ const CACHE_TTL_MS = 60_000;
 // Names are pre-masked (3 stars + the last few real characters) since these
 // are real usernames; remove this block once the CSV source goes live.
 const MANUAL_STANDINGS: Array<{ name: string; wagered: number }> = [
-  { name: "***mad", wagered: 51040 },
   { name: "***0oo", wagered: 31933.68 },
   { name: "***ls7", wagered: 19378.46 },
   { name: "***163", wagered: 15013.8 },
   { name: "***ass", wagered: 11582.49 },
   { name: "***it7", wagered: 7276.62 },
+  { name: "***mad", wagered: 5104 },
   { name: "***212", wagered: 2005.0 },
   { name: "***nhd", wagered: 415.18 },
   { name: "***113", wagered: 340.85 },

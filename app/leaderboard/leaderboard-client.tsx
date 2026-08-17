@@ -1,8 +1,14 @@
 "use client";
 
 import { RaceCountdownBoxes, useRaceClock } from "../components/month-countdown";
-import { badgeFor, boards, maskedName, money } from "../data";
-import type { BoardsData } from "../lib/leaderboards";
+import { boards, money } from "../data";
+import type { Standing } from "../lib/leaderboards";
+
+// Names arrive from the server already masked, with the avatar badge
+// precomputed from the real username — see leaderboard/page.tsx. This keeps
+// the real username out of the client bundle's hydration payload entirely.
+type DisplayStanding = Standing & { badge: string };
+type DisplayBoardsData = { stake: DisplayStanding[] };
 
 function detailedMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -27,7 +33,7 @@ const SIDE_BUBBLES: Array<[number, number, number, number, number, number]> = [
   [2, 95, 32, 15, 10, 4.4],
 ];
 
-export function LeaderboardClient({ standings }: { standings: BoardsData }) {
+export function LeaderboardClient({ standings }: { standings: DisplayBoardsData }) {
   const board = boards.stake;
   const race = useRaceClock(board.period);
   const rankedPlayers = standings.stake ?? [];
@@ -80,7 +86,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
                         </span>
                         <img className="rankBadge" src={`/medal-${place}.png?v=3`} alt={placeLabel[place - 1]} />
                       </div>
-                      <h2>{maskedName(player.name)}</h2>
+                      <h2>{player.name}</h2>
                       <span className="podiumLabel">Wagered</span>
                       <span className="wagerPill">{detailedMoney(player.wagered)}</span>
                     </div>
@@ -118,7 +124,7 @@ export function LeaderboardClient({ standings }: { standings: BoardsData }) {
               ) : (
                 <span className="rankChip">{index + 1}</span>
               )}
-              <div className="tablePlayer"><span className="miniBadge">{badgeFor(player.name)}</span><strong>{maskedName(player.name)}</strong></div>
+              <div className="tablePlayer"><span className="miniBadge">{player.badge}</span><strong>{player.name}</strong></div>
               <strong className="wagered">{detailedMoney(player.wagered)}</strong>
               <strong className="prize">{player.prize > 0 ? money(player.prize) : "-"}</strong>
             </div>

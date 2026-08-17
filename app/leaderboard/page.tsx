@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { badgeFor, maskedName } from "../data";
 import { getBoardsData } from "../lib/leaderboards";
 import { LeaderboardClient } from "./leaderboard-client";
 
@@ -19,6 +20,15 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const standings = await getBoardsData();
+  const { stake } = await getBoardsData();
+  // Mask on the server so the real username never crosses into the client
+  // bundle's hydration payload — only the already-masked text + badge do.
+  const standings = {
+    stake: stake.map((player) => ({
+      ...player,
+      badge: badgeFor(player.name),
+      name: maskedName(player.name),
+    })),
+  };
   return <LeaderboardClient standings={standings} />;
 }

@@ -15,23 +15,6 @@ const STAKE_PRIZES = [
 
 const CACHE_TTL_MS = 60_000;
 
-// Manually entered standings — a stopgap until STAKE_LEADERBOARD_CSV_URL is
-// actually reachable (the sheet is still access-restricted as of writing).
-// Names are pre-masked (3 stars + the last few real characters) since these
-// are real usernames; remove this block once the CSV source goes live.
-const MANUAL_STANDINGS: Array<{ name: string; wagered: number }> = [
-  { name: "***0oo", wagered: 31933.68 },
-  { name: "***ls7", wagered: 19378.46 },
-  { name: "***163", wagered: 15013.8 },
-  { name: "***ass", wagered: 11582.49 },
-  { name: "***it7", wagered: 7276.62 },
-  { name: "***mad", wagered: 5104 },
-  { name: "***212", wagered: 2005.0 },
-  { name: "***nhd", wagered: 415.18 },
-  { name: "***113", wagered: 340.85 },
-  { name: "***izz", wagered: 199.28 },
-];
-
 // Tops up a partial standings list to the full paid-places count with an
 // open invitation rather than a blank state — prizes stay real, only the
 // name and wagered amount are filler.
@@ -88,18 +71,62 @@ function rank(entries: Array<{ name: string; wagered: number }>): Standing[] {
     .map((entry, index) => ({ ...entry, prize: STAKE_PRIZES[index] ?? 0 }));
 }
 
-// Parses a published CSV (e.g. a Google Sheets "publish to web" link) with
-// username,wagered columns — the common way Stake affiliate exports are shared.
+// Splits one CSV line into cells, respecting double-quoted fields (Stake's
+// affiliate export quotes any wagered value that contains a thousands
+// comma, e.g. "$51,141.67" — a naive line.split(",") would break that in two).
+function splitCsvLine(line: string): string[] {
+  const cells: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cur += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      cells.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+// Parses a published CSV (e.g. a Google Sheets "publish to web" link, or a
+// Stake affiliate leaderboard export). Column order doesn't matter — the
+// name/wagered columns are found by header name, falling back to the first
+// two columns for a bare "username,wagered" sheet with no matching header.
 function parseCsv(text: string): Array<{ name: string; wagered: number }> {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.split(","))
-    .filter((cols) => cols.length >= 2)
+  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
+  if (lines.length < 2) return [];
+
+  const header = splitCsvLine(lines[0]).map((cell) => cell.trim().toLowerCase());
+  const nameCol = header.findIndex((cell) => ["user_name", "username", "name"].includes(cell));
+  const wageredCol = header.findIndex((cell) => ["wagered", "wager", "amount"].includes(cell));
+  const nameIndex = nameCol >= 0 ? nameCol : 0;
+  const wageredIndex = wageredCol >= 0 ? wageredCol : 1;
+
+  return lines
+    .slice(1)
+    .map((line) => splitCsvLine(line))
+    .filter((cols) => cols.length > Math.max(nameIndex, wageredIndex))
     .map((cols) => ({
-      name: cols[0].trim().replace(/^"|"$/g, ""),
-      wagered: Number(cols[1].replace(/[^0-9.]/g, "")),
+      name: (cols[nameIndex] ?? "").trim().replace(/^"|"$/g, ""),
+      wagered: Number((cols[wageredIndex] ?? "").replace(/[^0-9.]/g, "")),
     }))
-    .filter((entry) => entry.name && entry.name.toLowerCase() !== "username");
+    .filter((entry) => entry.name);
 }
 
 async function fetchStakeStandings(): Promise<Standing[]> {
@@ -150,6 +177,5 @@ async function fetchStakeStandings(): Promise<Standing[]> {
 export async function getBoardsData(): Promise<BoardsData> {
   const { start } = currentMonthRange();
   const stake = await cached(`stake:${start}`, fetchStakeStandings);
-  const base = stake.length > 0 ? stake : rank(MANUAL_STANDINGS);
-  return { stake: fillWithPlaceholders(base) };
+  return { stake: fillWithPlaceholders(stake) };
 }

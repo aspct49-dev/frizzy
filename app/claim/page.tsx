@@ -7,14 +7,14 @@ import { ClaimClient } from "./claim-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Claim Rakeback",
+  title: "Claim Affiliate Money Back",
   description:
-    "Log in with Discord and submit your Stake username to claim your 3.5% rakeback under code frizz.",
+    "Log in with Discord and submit your Stake username to claim 100% affiliate money back under code frizz.",
   alternates: { canonical: "/claim" },
   openGraph: {
-    title: "Claim Your Frizzybets Rakeback",
+    title: "Claim Your Frizzybets Affiliate Money Back",
     description:
-      "Log in with Discord and submit your Stake username to claim your 3.5% rakeback under code frizz.",
+      "Log in with Discord and submit your Stake username to claim 100% affiliate money back under code frizz.",
     url: "/claim",
     images: ["/og.png"],
   },

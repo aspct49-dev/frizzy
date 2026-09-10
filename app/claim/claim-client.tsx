@@ -127,14 +127,14 @@ export function ClaimClient({
           ))}
         </div>
 
-        <span className="claimBadge">Rakeback Rewards</span>
+        <span className="claimBadge">Affiliate Rewards</span>
         <h1 className="claimTitle">
-          Claim Your <span>3.5% Rakeback</span>
+          Claim Your <span>100% Affiliate Money Back</span>
         </h1>
         <p className="claimSub">
           Log in with Discord and drop your Stake username. Play under code{" "}
           <strong>{boards.stake.code}</strong>{" "}
-          and we&apos;ll send your rakeback straight to you.
+          and we&apos;ll send your affiliate money back straight to you.
         </p>
 
         <div className="claimPanel">

@@ -139,7 +139,7 @@ test("shared navigation, metadata, and data config are consistent", async () => 
 test("the claim flow is gated behind a real Discord session", async () => {
   const html = await htmlFor("/claim");
   assert.match(html, /Claim Your/i);
-  assert.match(html, /3\.5% Rakeback/i);
+  assert.match(html, /100% Affiliate Money Back/i);
   // Signed-out visitors get the login entry point, never the submit form.
   assert.match(html, /\/api\/auth\/discord/);
   // The form itself must not be in the signed-out markup at all. Matched on

@@ -9,6 +9,7 @@ const navigation = [
   { href: "/", label: "Home" },
   { href: "/leaderboard", label: "Leaderboard", badge: "$10K" },
   { href: "/#bonuses", label: "Bonuses" },
+  { href: "/claim", label: "Claim" },
   { href: "/#videos", label: "Videos" },
 ];
 

@@ -135,3 +135,53 @@ test("shared navigation, metadata, and data config are consistent", async () => 
   assert.doesNotMatch(leaderboards, /node:fs/);
   assert.doesNotMatch(origin, /x-forwarded-host/);
 });
+
+test("the claim flow is gated behind a real Discord session", async () => {
+  const html = await htmlFor("/claim");
+  assert.match(html, /Claim Your/i);
+  assert.match(html, /3\.5% Rakeback/i);
+  // Signed-out visitors get the login entry point, never the submit form.
+  assert.match(html, /\/api\/auth\/discord/);
+  // The form itself must not be in the signed-out markup at all. Matched on
+  // the submit control rather than the label text, which also appears in the
+  // page description meta tag.
+  assert.doesNotMatch(html, /Submit Claim/i);
+  assert.doesNotMatch(html, /class="claimForm"/);
+
+  // No session at all.
+  const anonymous = await fetch(`${BASE_URL}/api/claim`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ stakeUsername: "someone" }),
+  });
+  assert.equal(anonymous.status, 401, "claims must require a session");
+
+  // A cookie whose signature does not verify must be worth nothing. This is
+  // the whole security property of the stateless session: the payload is
+  // readable, so only the HMAC stops a visitor minting themselves a session.
+  const body = Buffer.from(
+    JSON.stringify({ id: "1", username: "forged", avatarUrl: "", exp: Date.now() + 60_000 }),
+  ).toString("base64url");
+  const forged = await fetch(`${BASE_URL}/api/claim`, {
+    method: "POST",
+    headers: { "content-type": "application/json", cookie: `fb_session=${body}.not-a-real-mac` },
+    body: JSON.stringify({ stakeUsername: "someone" }),
+  });
+  assert.equal(forged.status, 401, "a forged session signature must be rejected");
+});
+
+test("the Discord callback refuses a request with no matching state cookie", async () => {
+  const response = await fetch(`${BASE_URL}/api/auth/discord/callback?code=abc&state=attacker`, {
+    redirect: "manual",
+  });
+  assert.equal(response.status, 307);
+  // Whatever the reason, it must bounce back to /claim with an error and
+  // hand out no session.
+  const location = response.headers.get("location") ?? "";
+  assert.match(location, /\/claim\?error=/);
+  const cookies = response.headers.getSetCookie?.() ?? [];
+  assert.ok(
+    !cookies.some((cookie) => /^fb_session=[^;]+/.test(cookie) && !/fb_session=;/.test(cookie)),
+    "a rejected callback must not set a session cookie",
+  );
+});

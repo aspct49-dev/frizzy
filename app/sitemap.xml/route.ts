@@ -1,6 +1,7 @@
 const routes = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/leaderboard", priority: "0.9", changefreq: "hourly" },
+  { path: "/claim", priority: "0.7", changefreq: "monthly" },
 ];
 
 import { requestOrigin } from "../lib/request-origin";

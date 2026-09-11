@@ -5,6 +5,7 @@ import {
   CLAIM_COOLDOWN_SECONDS,
   type ClaimCooldown,
 } from "../../lib/claim";
+import { dbConfigured, insertClaim, lastClaimAt } from "../../lib/db";
 import {
   readPayload,
   readSessionCookie,
@@ -15,6 +16,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const COOLDOWN_MS = CLAIM_COOLDOWN_SECONDS * 1000;
+
 export async function POST(request: Request) {
   const jar = await cookies();
   const user = readSessionCookie(jar.get(SESSION_COOKIE)?.value);
@@ -22,6 +25,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Login required" }, { status: 401 });
   }
 
+  // Fast path: the signed cookie catches the common repeat without a round
+  // trip to the database.
   const cooldown = readPayload<ClaimCooldown>(jar.get(CLAIM_COOLDOWN_COOKIE)?.value);
   if (cooldown) {
     return NextResponse.json(
@@ -46,41 +51,82 @@ export async function POST(request: Request) {
   }
 
   const webhook = process.env.DISCORD_CLAIM_WEBHOOK_URL?.trim();
-  if (!webhook) {
-    console.error("DISCORD_CLAIM_WEBHOOK_URL is not set — claim could not be delivered");
+  const hasDb = dbConfigured();
+  if (!hasDb && !webhook) {
+    console.error("Neither POSTGRES_URL nor DISCORD_CLAIM_WEBHOOK_URL is set");
     return NextResponse.json({ error: "Claims are not configured yet" }, { status: 503 });
   }
 
   const now = new Date();
-  try {
-    const delivered = await fetch(webhook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        embeds: [
-          {
-            title: "🧃 Affiliate Claim",
-            color: 0x22d8e6,
-            thumbnail: { url: user.avatarUrl },
-            fields: [
-              { name: "Discord", value: `${user.username} (${user.id})`, inline: true },
-              { name: "Stake Username", value: stakeUsername, inline: true },
-              { name: "Submitted", value: now.toUTCString(), inline: false },
-            ],
-            timestamp: now.toISOString(),
-            footer: { text: "frizzybets" },
-          },
-        ],
-      }),
-    });
 
-    if (!delivered.ok) {
-      console.error("Claim webhook rejected:", delivered.status, await delivered.text());
+  // Authoritative cooldown. Unlike the cookie above, this cannot be cleared
+  // from the browser.
+  if (hasDb) {
+    try {
+      const last = await lastClaimAt(user.id);
+      const elapsed = last ? now.getTime() - last.getTime() : Infinity;
+      if (elapsed < COOLDOWN_MS) {
+        return NextResponse.json(
+          { error: "Cooldown active", cooldownRemaining: COOLDOWN_MS - elapsed },
+          { status: 429 },
+        );
+      }
+    } catch (error) {
+      console.error("Cooldown lookup failed:", error);
       return NextResponse.json({ error: "Could not submit claim, try again" }, { status: 502 });
     }
-  } catch (error) {
-    console.error("Claim webhook failed:", error);
-    return NextResponse.json({ error: "Could not submit claim, try again" }, { status: 502 });
+
+    try {
+      await insertClaim({
+        discordId: user.id,
+        discordUsername: user.username,
+        avatarUrl: user.avatarUrl,
+        stakeUsername,
+      });
+    } catch (error) {
+      console.error("Claim insert failed:", error);
+      return NextResponse.json({ error: "Could not submit claim, try again" }, { status: 502 });
+    }
+  }
+
+  if (webhook) {
+    try {
+      const delivered = await fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [
+            {
+              title: "🧃 Affiliate Claim",
+              color: 0x22d8e6,
+              thumbnail: { url: user.avatarUrl },
+              fields: [
+                { name: "Discord", value: `${user.username} (${user.id})`, inline: true },
+                { name: "Stake Username", value: stakeUsername, inline: true },
+                { name: "Submitted", value: now.toUTCString(), inline: false },
+              ],
+              timestamp: now.toISOString(),
+              footer: { text: "frizzybets" },
+            },
+          ],
+        }),
+      });
+
+      if (!delivered.ok) {
+        const detail = await delivered.text();
+        console.error("Claim webhook rejected:", delivered.status, detail);
+        // Already recorded, so the claim is not lost -- the admin panel will
+        // show it even though the Discord ping did not land.
+        if (!hasDb) {
+          return NextResponse.json({ error: "Could not submit claim, try again" }, { status: 502 });
+        }
+      }
+    } catch (error) {
+      console.error("Claim webhook failed:", error);
+      if (!hasDb) {
+        return NextResponse.json({ error: "Could not submit claim, try again" }, { status: 502 });
+      }
+    }
   }
 
   const response = NextResponse.json({ ok: true });

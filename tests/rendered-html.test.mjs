@@ -185,3 +185,46 @@ test("the Discord callback refuses a request with no matching state cookie", asy
     "a rejected callback must not set a session cookie",
   );
 });
+
+test("every admin endpoint refuses a visitor who is not an admin", async () => {
+  const routes = [
+    ["GET", "/api/admin/claims"],
+    ["POST", "/api/admin/claims/mark"],
+    ["GET", "/api/admin/challenges"],
+    ["POST", "/api/admin/challenges"],
+    ["POST", "/api/admin/challenges/mark"],
+    ["POST", "/api/admin/challenges/delete"],
+    ["POST", "/api/admin/upload"],
+  ];
+
+  for (const [method, path] of routes) {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers: method === "POST" ? { "content-type": "application/json" } : undefined,
+      body: method === "POST" ? JSON.stringify({ id: "1", status: "claimed" }) : undefined,
+    });
+    assert.equal(response.status, 403, `${method} ${path} must be admin-only`);
+  }
+});
+
+test("the admin page shows no data to a visitor who is not an admin", async () => {
+  const html = await htmlFor("/admin");
+  // The gate renders a login prompt and nothing else: no tabs, no table, no
+  // claim rows in the payload.
+  assert.match(html, /Login with Discord/);
+  assert.doesNotMatch(html, /adminTabs/);
+  assert.doesNotMatch(html, /adminTable/);
+});
+
+test("challenges render publicly and admin surfaces stay out of the index", async () => {
+  const html = await htmlFor("/challenges");
+  assert.match(html, /Slot Challenges/i);
+
+  const robots = await fetch(`${BASE_URL}/robots.txt`).then((r) => r.text());
+  assert.match(robots, /Disallow: \/admin/);
+  assert.match(robots, /Disallow: \/api\//);
+
+  const sitemap = await fetch(`${BASE_URL}/sitemap.xml`).then((r) => r.text());
+  assert.match(sitemap, /<loc>[^<]*\/challenges<\/loc>/);
+  assert.doesNotMatch(sitemap, /\/admin/);
+});

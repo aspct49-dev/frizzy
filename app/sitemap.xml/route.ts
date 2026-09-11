@@ -1,6 +1,7 @@
 const routes = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/leaderboard", priority: "0.9", changefreq: "hourly" },
+  { path: "/challenges", priority: "0.8", changefreq: "weekly" },
   { path: "/claim", priority: "0.7", changefreq: "monthly" },
 ];
 

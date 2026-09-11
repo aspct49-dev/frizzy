@@ -5,6 +5,10 @@ export async function GET() {
   const body = [
     "User-agent: *",
     "Allow: /",
+    // Staff control panel and the endpoints behind it. Already gated by the
+    // admin allowlist; this just keeps them out of the index.
+    "Disallow: /admin",
+    "Disallow: /api/",
     "",
     `Sitemap: ${origin}/sitemap.xml`,
     "",

@@ -11,7 +11,11 @@ import { readSessionCookie, SESSION_COOKIE, type SessionUser } from "./session";
 export function adminIds(): string[] {
   return (process.env.ADMIN_DISCORD_IDS ?? "")
     .split(",")
-    .map((id) => id.trim())
+    // Snowflakes are digits only, so stripping everything else normalises the
+    // ways an ID gets mangled on the way into an env var: surrounding quotes
+    // (Vercel does not remove them), a pasted <@123> mention, or an invisible
+    // character picked up by a copy.
+    .map((id) => id.replace(/\D/g, ""))
     .filter(Boolean);
 }
 

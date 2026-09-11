@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { FaDiscord } from "react-icons/fa";
-import { adminConfigured, currentUser, isAdmin } from "../lib/admin";
+import { adminIds, currentUser, isAdmin } from "../lib/admin";
 import {
   dbConfigured,
   listChallenges,
@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 export default async function AdminPage() {
   const user = await currentUser();
   const admin = isAdmin(user);
+  const adminCount = adminIds().length;
 
   // Anyone who is not an admin gets a shell with no data in it at all -- the
   // claims and challenges are fetched client-side from routes that check the
@@ -40,18 +41,31 @@ export default async function AdminPage() {
             </div>
           ) : (
             <div className="adminGate">
-              <p className="claimError">
-                This account is not an admin.
-                {!adminConfigured() && " No admins are configured yet."}
+              <p className="claimError">This account is not an admin.</p>
+              <p className="adminHint">
+                Signed in as <strong>{user.username}</strong>
               </p>
               <p className="adminHint">
-                Signed in as <strong>{user.username}</strong> — Discord ID{" "}
-                <code>{user.id}</code>
+                Your Discord ID is <code>{user.id}</code>
               </p>
-              {!adminConfigured() && (
+              {/* The count, never the IDs themselves. It is the one fact that
+                  separates "the variable never reached this deployment" from
+                  "it did, but your ID is not in it" -- which are fixed very
+                  differently. */}
+              {adminCount === 0 ? (
                 <p className="adminHint">
-                  Add that ID to the <code>ADMIN_DISCORD_IDS</code> environment
-                  variable to grant access.
+                  This deployment sees <strong>no</strong>{" "}
+                  <code>ADMIN_DISCORD_IDS</code> value. Add the ID above to that
+                  environment variable, then redeploy — env changes only reach a
+                  new deployment.
+                </p>
+              ) : (
+                <p className="adminHint">
+                  This deployment has {adminCount} admin ID
+                  {adminCount === 1 ? "" : "s"} configured, and the ID above is
+                  not one of them. Check it was copied from{" "}
+                  <em>Copy User ID</em> (your account) and not a server or
+                  application ID.
                 </p>
               )}
             </div>

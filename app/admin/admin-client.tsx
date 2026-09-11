@@ -39,6 +39,7 @@ const EMPTY_FORM = {
   minBet: "",
   prize: "",
   provider: "",
+  linkUrl: "",
 };
 
 export function AdminClient({
@@ -382,6 +383,17 @@ export function AdminClient({
                     maxLength={40}
                     placeholder="Colorful Play"
                     onChange={(event) => setForm({ ...form, provider: event.target.value })}
+                  />
+                </label>
+
+                <label className="claimField adminWide">
+                  <span>Link to the game on Stake</span>
+                  <input
+                    type="url"
+                    value={form.linkUrl}
+                    maxLength={500}
+                    placeholder="https://stake.com/casino/games/…"
+                    onChange={(event) => setForm({ ...form, linkUrl: event.target.value })}
                   />
                 </label>
 

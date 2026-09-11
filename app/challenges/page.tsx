@@ -76,26 +76,47 @@ export default async function ChallengesPage() {
           </p>
         ) : (
           <div className="chalGrid">
-            {challenges.map((challenge) => (
-              <article className="chalCard" key={challenge.id}>
-                <div className="chalArt">
-                  <img src={challenge.imageUrl} alt={challenge.name} loading="lazy" />
-                  <div className="chalArtOverlay">
-                    <h2>{challenge.name}</h2>
-                    {challenge.provider && <span>{challenge.provider}</span>}
+            {challenges.map((challenge) => {
+              const body = (
+                <>
+                  <div className="chalArt">
+                    <img src={challenge.imageUrl} alt={challenge.name} loading="lazy" />
+                    <div className="chalArtOverlay">
+                      <h2>{challenge.name}</h2>
+                      {challenge.provider && <span>{challenge.provider}</span>}
+                    </div>
                   </div>
-                </div>
-                <div className="chalBody">
-                  <p className="chalReq">{requirement(challenge)}</p>
-                  {challenge.prize && (
-                    <p className="chalPrize">
-                      <span>Prize</span>
-                      <strong>${challenge.prize}</strong>
-                    </p>
-                  )}
-                </div>
-              </article>
-            ))}
+                  <div className="chalBody">
+                    <p className="chalReq">{requirement(challenge)}</p>
+                    {challenge.prize && (
+                      <p className="chalPrize">
+                        <span>Prize</span>
+                        <strong>${challenge.prize}</strong>
+                      </p>
+                    )}
+                    {challenge.linkUrl && <span className="chalPlay">Play on Stake →</span>}
+                  </div>
+                </>
+              );
+
+              // A challenge without a link is not clickable, so it stays an
+              // article rather than becoming an anchor to nowhere.
+              return challenge.linkUrl ? (
+                <a
+                  className="chalCard chalCardLink"
+                  href={challenge.linkUrl}
+                  key={challenge.id}
+                  target="_blank"
+                  rel="noreferrer sponsored"
+                >
+                  {body}
+                </a>
+              ) : (
+                <article className="chalCard" key={challenge.id}>
+                  {body}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

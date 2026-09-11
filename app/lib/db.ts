@@ -67,11 +67,18 @@ export function ensureSchema(): Promise<void> {
         min_bet      TEXT,
         prize        TEXT,
         provider     TEXT,
+        link_url     TEXT,
         status       TEXT        NOT NULL DEFAULT 'active',
         completed_by TEXT,
         completed_at TIMESTAMPTZ,
         created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
       )
+    `;
+    // CREATE TABLE IF NOT EXISTS does nothing to a table that already exists,
+    // so columns added after the first deploy have to be migrated in. Safe to
+    // run every cold start.
+    await db.sql`
+      ALTER TABLE challenges ADD COLUMN IF NOT EXISTS link_url TEXT
     `;
   })().catch((error) => {
     // Don't cache a failed init, or the process stays poisoned until redeploy.
@@ -105,6 +112,7 @@ export type ChallengeRow = {
   minBet: string | null;
   prize: string | null;
   provider: string | null;
+  linkUrl: string | null;
   status: ChallengeStatus;
   completedBy: string | null;
   completedAt: string | null;
@@ -131,6 +139,7 @@ const toChallenge = (r: any): ChallengeRow => ({
   minBet: r.min_bet,
   prize: r.prize,
   provider: r.provider,
+  linkUrl: r.link_url ?? null,
   status: r.status === "completed" ? "completed" : "active",
   completedBy: r.completed_by,
   completedAt: r.completed_at ? new Date(r.completed_at).toISOString() : null,
@@ -209,12 +218,13 @@ export async function insertChallenge(challenge: {
   minBet: string | null;
   prize: string | null;
   provider: string | null;
+  linkUrl: string | null;
 }): Promise<ChallengeRow> {
   await ensureSchema();
   const { rows } = await pool().sql`
-    INSERT INTO challenges (id, name, image_url, target, min_bet, prize, provider)
+    INSERT INTO challenges (id, name, image_url, target, min_bet, prize, provider, link_url)
     VALUES (${challenge.id}, ${challenge.name}, ${challenge.imageUrl}, ${challenge.target},
-            ${challenge.minBet}, ${challenge.prize}, ${challenge.provider})
+            ${challenge.minBet}, ${challenge.prize}, ${challenge.provider}, ${challenge.linkUrl})
     RETURNING *
   `;
   return toChallenge(rows[0]);

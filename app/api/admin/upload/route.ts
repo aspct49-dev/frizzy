@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { forbidden, requireAdmin } from "../../../lib/admin";
+import { blobConfigured } from "../../../lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ const EXTENSIONS: Record<string, string> = {
 export async function POST(request: Request) {
   if (!(await requireAdmin())) return forbidden();
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
+  if (!blobConfigured()) {
     return NextResponse.json(
       { error: "Image storage is not configured (BLOB_READ_WRITE_TOKEN)" },
       { status: 503 },

@@ -44,12 +44,14 @@ const EMPTY_FORM = {
 export function AdminClient({
   username,
   databaseReady,
+  uploadsReady,
   initialClaims,
   initialChallenges,
   loadError,
 }: {
   username: string;
   databaseReady: boolean;
+  uploadsReady: boolean;
   initialClaims: ClaimRow[];
   initialChallenges: ChallengeRow[];
   loadError: string | null;
@@ -222,6 +224,14 @@ export function AdminClient({
             <code> POSTGRES_URL </code> and redeploy.
           </p>
         )}
+        {databaseReady && !uploadsReady && (
+          <p className="claimError">
+            Image storage is not connected, so challenge images cannot be
+            uploaded. The Blob store needs to export{" "}
+            <code>BLOB_READ_WRITE_TOKEN</code> to this project. Everything else
+            works.
+          </p>
+        )}
         {error && <p className="claimError">{error}</p>}
 
         <div className="adminTabs" role="tablist">
@@ -382,6 +392,7 @@ export function AdminClient({
                     <input
                       ref={fileInput}
                       type="file"
+                      disabled={!uploadsReady}
                       accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
                       onChange={(event) => {
                         const file = event.target.files?.[0];

@@ -8,6 +8,7 @@ import {
   type ChallengeRow,
   type ClaimRow,
 } from "../lib/db";
+import { blobConfigured } from "../lib/storage";
 import { AdminClient } from "./admin-client";
 
 export const dynamic = "force-dynamic";
@@ -95,6 +96,7 @@ export default async function AdminPage() {
     <AdminClient
       username={user!.username}
       databaseReady={dbConfigured()}
+      uploadsReady={blobConfigured()}
       initialClaims={claims}
       initialChallenges={challenges}
       loadError={loadError}

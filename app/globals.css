@@ -4446,3 +4446,18 @@ body:not(.splash-done) :is(
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Admin link: only ever rendered for admins, tinted so it reads as a staff
+   affordance rather than another public section. */
+.navLinks a.navAdmin {
+  color: #f2c75c;
+}
+
+.navLinks a.navAdmin:hover,
+.navLinks a.navAdmin.active {
+  color: #ffd980;
+}
+
+.adminUrlFallback {
+  width: 100%;
+}

@@ -226,10 +226,9 @@ export function AdminClient({
         )}
         {databaseReady && !uploadsReady && (
           <p className="claimError">
-            Image storage is not connected, so challenge images cannot be
-            uploaded. The Blob store needs to export{" "}
-            <code>BLOB_READ_WRITE_TOKEN</code> to this project. Everything else
-            works.
+            Image uploads are off until the Blob store exports{" "}
+            <code>BLOB_READ_WRITE_TOKEN</code> to this project. Paste an image
+            URL instead in the meantime — challenges work either way.
           </p>
         )}
         {error && <p className="claimError">{error}</p>}
@@ -389,16 +388,25 @@ export function AdminClient({
                 <div className="claimField adminWide">
                   <span>Image *</span>
                   <div className="adminUpload">
-                    <input
-                      ref={fileInput}
-                      type="file"
-                      disabled={!uploadsReady}
-                      accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0];
-                        if (file) void uploadImage(file);
-                      }}
-                    />
+                    {uploadsReady ? (
+                      <input
+                        ref={fileInput}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) void uploadImage(file);
+                        }}
+                      />
+                    ) : (
+                      <input
+                        className="adminUrlFallback"
+                        type="url"
+                        value={imageUrl}
+                        placeholder="https://… image URL"
+                        onChange={(event) => setImageUrl(event.target.value.trim())}
+                      />
+                    )}
                     {uploading && <span className="adminHint">Uploading…</span>}
                     {imageUrl && !uploading && (
                       <img className="adminPreview" src={imageUrl} alt="Challenge preview" />

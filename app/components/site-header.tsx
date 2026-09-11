@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { DISCORD_URL } from "../data";
 
 const navigation = [
   { href: "/", label: "Home" },
@@ -14,9 +13,25 @@ const navigation = [
   { href: "/#videos", label: "Videos" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({
+  signedIn = false,
+  isAdmin = false,
+}: {
+  signedIn?: boolean;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  // Admins get the panel in the nav; everyone else never sees that it exists.
+  const links = isAdmin
+    ? [...navigation, { href: "/admin", label: "Admin" }]
+    : navigation;
+
+  // Signed-in visitors go straight to the claim form. Everyone else starts the
+  // Discord handshake, which lands on /claim once it completes -- so the button
+  // means the same thing either way.
+  const claimHref = signedIn ? "/claim" : "/api/auth/discord";
 
   return (
     <header className="siteHeader">
@@ -26,27 +41,27 @@ export function SiteHeader() {
         </Link>
 
         <div className={`navLinks ${open ? "open" : ""}`}>
-          {navigation.map((item) => (
+          {links.map((item) => (
             <Link
-              className={pathname === item.href ? "active" : ""}
+              className={`${pathname === item.href ? "active" : ""}${
+                item.href === "/admin" ? " navAdmin" : ""
+              }`}
               href={item.href}
               key={item.href}
               onClick={() => setOpen(false)}
             >
               {item.label}
-              {item.badge && <span className="navBadge">{item.badge}</span>}
+              {"badge" in item && item.badge && <span className="navBadge">{item.badge}</span>}
             </Link>
           ))}
         </div>
 
         <div className="navEnd">
-          <a
-            className="headerAction"
-            href={DISCORD_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Claim Bonus
+          {/* A plain anchor, not next/link: signed-out this points at an OAuth
+              route handler, which has to be a real navigation rather than a
+              client-side transition. */}
+          <a className="headerAction" href={claimHref}>
+            {signedIn ? "Claim Bonus" : "Login to Claim"}
           </a>
 
           <button

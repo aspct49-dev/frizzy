@@ -207,6 +207,21 @@ test("every admin endpoint refuses a visitor who is not an admin", async () => {
   }
 });
 
+test("the admin link is not in the nav for visitors who are not admins", async () => {
+  // The header is rendered for every page, so a leak here would expose the
+  // panel's existence sitewide.
+  for (const path of ["/", "/claim", "/challenges", "/leaderboard"]) {
+    const html = await htmlFor(path);
+    assert.doesNotMatch(html, /navAdmin/, `${path} must not show the admin link`);
+    assert.doesNotMatch(html, /href="\/admin"/, `${path} must not link to /admin`);
+  }
+});
+
+test("the claim button starts the Discord handshake when signed out", async () => {
+  const html = await htmlFor("/");
+  assert.match(html, /class="headerAction" href="\/api\/auth\/discord"/);
+});
+
 test("the admin page shows no data to a visitor who is not an admin", async () => {
   const html = await htmlFor("/admin");
   // The gate renders a login prompt and nothing else: no tabs, no table, no

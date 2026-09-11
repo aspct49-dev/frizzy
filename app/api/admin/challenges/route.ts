@@ -58,6 +58,19 @@ export async function POST(request: Request) {
   if (!name) return NextResponse.json({ error: "Challenge name is required" }, { status: 400 });
   if (!imageUrl) return NextResponse.json({ error: "Challenge image is required" }, { status: 400 });
 
+  // This value ends up in an <img src> on a public page. Uploads produce a
+  // blob URL, but the field also accepts a pasted one, so restrict it to http,
+  // https and same-origin paths rather than whatever scheme was typed.
+  const wellFormed =
+    imageUrl.startsWith("/") ||
+    /^https?:\/\//i.test(imageUrl);
+  if (!wellFormed) {
+    return NextResponse.json(
+      { error: "Image must be an http(s) URL" },
+      { status: 400 },
+    );
+  }
+
   let base = slugify(name);
   if (!base) base = "challenge";
 

@@ -3,6 +3,7 @@ import { SiteFooter } from "./components/site-footer";
 import { SiteHeader } from "./components/site-header";
 import { MotionObserver } from "./components/motion-observer";
 import { SplashScreen } from "./components/splash-screen";
+import { currentUser, isAdmin } from "./lib/admin";
 import { requestOrigin } from "./lib/request-origin";
 import "./globals.css";
 
@@ -87,6 +88,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const origin = requestOrigin();
+
+  // The header needs to know who is looking at it: signed-in visitors skip the
+  // OAuth round trip, and admins get a link to the panel. Only the viewer's own
+  // status crosses to the client -- never the allowlist itself.
+  const user = await currentUser();
+  const viewerIsAdmin = isAdmin(user);
+
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -123,7 +131,7 @@ export default async function RootLayout({
         />
         <SplashScreen />
         <MotionObserver />
-        <SiteHeader />
+        <SiteHeader signedIn={Boolean(user)} isAdmin={viewerIsAdmin} />
         <div className="appMain">
           {children}
           <SiteFooter />

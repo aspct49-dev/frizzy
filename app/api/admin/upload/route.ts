@@ -37,6 +37,23 @@ const detailOf = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
 /**
+ * Blob's own wording for a private store is accurate but leaves the reader to
+ * work out that the store itself is the thing to change, not the code.
+ * Challenge art is rendered by visitors' browsers, so it has to be public.
+ */
+function explain(error: unknown): string {
+  const detail = detailOf(error);
+  if (/private (store|access)/i.test(detail)) {
+    return (
+      "The Blob store is set to private, so uploaded images could not be " +
+      "shown on the site. Create a Blob store with public access and connect " +
+      "that one instead."
+    );
+  }
+  return detail;
+}
+
+/**
  * Diagnostics. Admin-only, and far easier to reach than function logs: opening
  * this route in a browser says whether the module loads, whether a token is
  * present, and what Blob storage actually replies to a minimal write.
@@ -50,19 +67,27 @@ export async function GET() {
   };
 
   try {
-    const put = await blobPut();
+    const mod = await import("@vercel/blob");
     report.moduleLoaded = true;
-    const probe = await put("challenges/_probe.txt", "ok", {
+    const probe = await mod.put("challenges/_probe.txt", "ok", {
       access: "public",
       addRandomSuffix: true,
       contentType: "text/plain",
     });
     report.writeOk = true;
     report.url = probe.url;
+    // Don't leave probe files behind every time this is opened.
+    try {
+      await mod.del(probe.url);
+      report.cleanedUp = true;
+    } catch {
+      report.cleanedUp = false;
+    }
   } catch (error) {
     report.moduleLoaded = report.moduleLoaded ?? false;
     report.writeOk = false;
-    report.error = detailOf(error);
+    report.error = explain(error);
+    report.raw = detailOf(error);
   }
 
   return NextResponse.json(report);
@@ -74,7 +99,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Blob upload crashed:", error);
     return NextResponse.json(
-      { error: `Image storage rejected the upload: ${detailOf(error)}` },
+      { error: `Image upload failed. ${explain(error)}` },
       { status: 502 },
     );
   }

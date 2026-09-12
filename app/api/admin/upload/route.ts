@@ -1,4 +1,3 @@
-import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { forbidden, requireAdmin } from "../../../lib/admin";
 import { blobConfigured } from "../../../lib/storage";
@@ -22,22 +21,60 @@ const EXTENSIONS: Record<string, string> = {
 };
 
 /**
- * Anything thrown here would otherwise escape as a platform error page with no
- * JSON body, which the client can only report as an opaque status code. The
- * whole handler is wrapped so a failure always comes back as a readable
- * message instead.
+ * Imported at call time rather than at module scope on purpose.
  *
- * The real error text is included: this route is admin-only, and the
- * alternative is asking someone to go and read function logs.
+ * A top-level import that fails to load takes the whole function down before
+ * any handler runs, which the platform serves as a bodyless 502 -- the one
+ * failure our error handling cannot turn into a message. Loading it here makes
+ * that case catchable and reportable like any other.
  */
+async function blobPut() {
+  const mod = await import("@vercel/blob");
+  return mod.put;
+}
+
+const detailOf = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
+/**
+ * Diagnostics. Admin-only, and far easier to reach than function logs: opening
+ * this route in a browser says whether the module loads, whether a token is
+ * present, and what Blob storage actually replies to a minimal write.
+ */
+export async function GET() {
+  if (!(await requireAdmin())) return forbidden();
+
+  const report: Record<string, unknown> = {
+    tokenPresent: blobConfigured(),
+    tokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.trim().slice(0, 20) ?? null,
+  };
+
+  try {
+    const put = await blobPut();
+    report.moduleLoaded = true;
+    const probe = await put("challenges/_probe.txt", "ok", {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: "text/plain",
+    });
+    report.writeOk = true;
+    report.url = probe.url;
+  } catch (error) {
+    report.moduleLoaded = report.moduleLoaded ?? false;
+    report.writeOk = false;
+    report.error = detailOf(error);
+  }
+
+  return NextResponse.json(report);
+}
+
 export async function POST(request: Request) {
   try {
     return await handleUpload(request);
   } catch (error) {
     console.error("Blob upload crashed:", error);
-    const detail = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `Image storage rejected the upload: ${detail}` },
+      { error: `Image storage rejected the upload: ${detailOf(error)}` },
       { status: 502 },
     );
   }
@@ -79,6 +116,7 @@ async function handleUpload(request: Request) {
     return NextResponse.json({ error: "Image must be 4MB or smaller" }, { status: 413 });
   }
 
+  const put = await blobPut();
   // addRandomSuffix keeps two uploads of the same filename from colliding.
   const blob = await put(`challenges/upload.${extension}`, file, {
     access: "public",

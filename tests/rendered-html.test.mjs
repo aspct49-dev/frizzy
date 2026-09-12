@@ -195,6 +195,7 @@ test("every admin endpoint refuses a visitor who is not an admin", async () => {
     ["POST", "/api/admin/challenges/mark"],
     ["POST", "/api/admin/challenges/delete"],
     ["POST", "/api/admin/upload"],
+    ["GET", "/api/admin/upload"],
   ];
 
   for (const [method, path] of routes) {

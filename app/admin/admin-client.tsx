@@ -22,6 +22,47 @@ const formatDate = (iso: string) =>
     timeZone: "UTC",
   })} UTC`;
 
+// Vercel caps a serverless function's request body at 4.5MB and rejects
+// anything larger itself, before our handler runs -- so a big file never
+// reaches our size check and comes back as a platform error page rather than
+// a useful message. Shrinking in the browser sidesteps that entirely.
+//
+// It is the right thing regardless: these render as ~275px-wide cards, so a
+// multi-megabyte source is wasted bytes for every visitor.
+const MAX_EDGE = 1200;
+
+async function shrink(file: File): Promise<File> {
+  // Re-encoding an animated GIF would flatten it to one frame.
+  if (file.type === "image/gif") return file;
+
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return file; // Not decodable here; let the server have its say.
+  }
+
+  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return file;
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", 0.85),
+  );
+  if (!blob) return file;
+  // Re-encoding a small, already-efficient file can make it bigger.
+  if (blob.size >= file.size && scale === 1) return file;
+  return new File([blob], "challenge.webp", { type: "image/webp" });
+}
+
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {
     method: "POST",
@@ -121,14 +162,31 @@ export function AdminClient({
     }
   };
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (original: File) => {
     setUploading(true);
     setFormError(null);
     try {
+      const file = await shrink(original);
+
       const body = new FormData();
       body.append("file", file);
       const response = await fetch("/api/admin/upload", { method: "POST", body });
-      const data = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+
+      // A platform-level rejection (or any proxy error) is not our JSON, so
+      // read it as text first and say something useful instead of the bare
+      // "Upload failed" that hid the real cause.
+      const raw = await response.text();
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          response.status === 413
+            ? `That image is too large to send (${Math.round(file.size / 1024)}KB after resizing).`
+            : `Upload rejected by the server (HTTP ${response.status}).`,
+        );
+      }
+
       if (!response.ok || !data.url) throw new Error(data.error ?? "Upload failed");
       setImageUrl(data.url);
     } catch (cause) {

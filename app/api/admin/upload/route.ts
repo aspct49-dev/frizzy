@@ -4,9 +4,13 @@ import { forbidden, requireAdmin } from "../../../lib/admin";
 import { blobConfigured } from "../../../lib/storage";
 
 export const dynamic = "force-dynamic";
+// The upload is one network hop to Blob storage, but the default ceiling is
+// low enough that a slow hop is indistinguishable from a crash.
+export const maxDuration = 30;
 
-// Vercel caps a serverless function's request body at 4.5MB, so anything
-// larger would fail with an opaque platform error rather than our message.
+// Vercel caps a serverless function's request body at 4.5MB. The browser
+// downscales before sending, so this is a backstop for anything that skipped
+// that path (an animated GIF, or an image the browser could not decode).
 const MAX_BYTES = 4 * 1024 * 1024;
 
 const EXTENSIONS: Record<string, string> = {
@@ -17,7 +21,29 @@ const EXTENSIONS: Record<string, string> = {
   "image/avif": "avif",
 };
 
+/**
+ * Anything thrown here would otherwise escape as a platform error page with no
+ * JSON body, which the client can only report as an opaque status code. The
+ * whole handler is wrapped so a failure always comes back as a readable
+ * message instead.
+ *
+ * The real error text is included: this route is admin-only, and the
+ * alternative is asking someone to go and read function logs.
+ */
 export async function POST(request: Request) {
+  try {
+    return await handleUpload(request);
+  } catch (error) {
+    console.error("Blob upload crashed:", error);
+    const detail = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: `Image storage rejected the upload: ${detail}` },
+      { status: 502 },
+    );
+  }
+}
+
+async function handleUpload(request: Request) {
   if (!(await requireAdmin())) return forbidden();
 
   if (!blobConfigured()) {
@@ -42,7 +68,7 @@ export async function POST(request: Request) {
   const extension = EXTENSIONS[file.type];
   if (!extension) {
     return NextResponse.json(
-      { error: "Image must be PNG, JPEG, WebP, GIF or AVIF" },
+      { error: `Unsupported image type "${file.type || "unknown"}"` },
       { status: 415 },
     );
   }
@@ -53,16 +79,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image must be 4MB or smaller" }, { status: 413 });
   }
 
-  try {
-    // addRandomSuffix keeps two uploads of the same filename from colliding.
-    const blob = await put(`challenges/upload.${extension}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-      contentType: file.type,
-    });
-    return NextResponse.json({ ok: true, url: blob.url });
-  } catch (error) {
-    console.error("Blob upload failed:", error);
-    return NextResponse.json({ error: "Could not upload image" }, { status: 502 });
-  }
+  // addRandomSuffix keeps two uploads of the same filename from colliding.
+  const blob = await put(`challenges/upload.${extension}`, file, {
+    access: "public",
+    addRandomSuffix: true,
+    contentType: file.type,
+  });
+
+  return NextResponse.json({ ok: true, url: blob.url });
 }

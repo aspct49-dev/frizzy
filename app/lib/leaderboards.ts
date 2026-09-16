@@ -63,8 +63,29 @@ async function cached(key: string, load: () => Promise<Standing[]>): Promise<Sta
   }
 }
 
+/**
+ * Players held out of the standings, matched case-insensitively against the
+ * username in the source sheet. Add more with the EXCLUDED_PLAYERS env var
+ * (comma separated) to take someone out without a code change.
+ *
+ * The filter runs before ranking, so everyone below a removed player moves up
+ * a place and the prize money reassigns to match.
+ */
+const EXCLUDED_PLAYERS = ["Tugsix"];
+
+function excludedNames(): Set<string> {
+  const fromEnv = (process.env.EXCLUDED_PLAYERS ?? "").split(",");
+  return new Set(
+    [...EXCLUDED_PLAYERS, ...fromEnv]
+      .map((name) => name.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
 function rank(entries: Array<{ name: string; wagered: number }>): Standing[] {
+  const excluded = excludedNames();
   return entries
+    .filter((entry) => !excluded.has(entry.name.trim().toLowerCase()))
     .filter((entry) => Number.isFinite(entry.wagered) && entry.wagered > 0)
     .sort((a, b) => b.wagered - a.wagered)
     .slice(0, STAKE_PRIZES.length)
